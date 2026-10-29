@@ -6,7 +6,7 @@
 [Source code](https://github.com/hamzah1985/OverLayer) ·
 [Installation guide](#install--portable-windows-app)
 
-Looking for a **D5 Render overlay**, **D5 OverLayer**, **Twinmotion overlay**, or
+Looking for a **D5 Render overlay**, **D5 OverLayer**, **Twinmotion OverLayer**, **Twinmotion overlay**, or
 **Twinmotion composition guides**? OverLayer places rule-of-thirds grids,
 golden-ratio guides, golden spirals, leading lines and perspective guides over
 your viewport. It is free, open source, and works as an independent Windows app.
