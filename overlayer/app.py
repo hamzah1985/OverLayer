@@ -10,6 +10,7 @@ import time
 
 from PySide6.QtCore import (
     QAbstractNativeEventFilter,
+    QEvent,
     QLockFile,
     QPointF,
     QRect,
@@ -32,6 +33,8 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QAbstractButton,
+    QAbstractSlider,
+    QAbstractSpinBox,
     QApplication,
     QCheckBox,
     QColorDialog,
@@ -165,6 +168,20 @@ class GuideChip(QAbstractButton):
         self.setMinimumHeight(48)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.paths = guide_paths(key, 4, 3, DEFAULTS)
+        # Modifier keys of the latest press: Shift/Ctrl add to the selection.
+        self.modifiers = Qt.KeyboardModifier.NoModifier
+
+    def mousePressEvent(self, event):
+        self.modifiers = event.modifiers()
+        super().mousePressEvent(event)
+
+    def keyPressEvent(self, event):
+        self.modifiers = event.modifiers()
+        super().keyPressEvent(event)
+
+    def take_modifiers(self):
+        modifiers, self.modifiers = self.modifiers, Qt.KeyboardModifier.NoModifier
+        return modifiers
 
     def sizeHint(self):
         return QSize(150, 48)
@@ -400,15 +417,16 @@ class Controller(QWidget):
         self.overlay.placement_changed.connect(self.overlay_geometry_changed)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        content = QWidget()
-        self.body = QVBoxLayout(content)
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.content = QWidget()
+        self.body = QVBoxLayout(self.content)
         self.body.setContentsMargins(22, 18, 22, 16)
         self.body.setSpacing(8)
-        scroll.setWidget(content)
-        outer.addWidget(scroll)
+        self.scroll.setWidget(self.content)
+        outer.addWidget(self.scroll)
         self.build_ui()
+        self.guard_wheel()
         self.make_tray()
         self.escape_controls = QShortcut(QKeySequence(Qt.Key.Key_Escape), self)
         self.escape_controls.activated.connect(self.request_quit)
@@ -554,14 +572,15 @@ class Controller(QWidget):
         self.guide_boxes = {}
         for index, (key, title) in enumerate(GUIDES.items()):
             chip = GuideChip(key, title)
-            chip.toggled.connect(lambda checked, k=key: self.guide_changed(k, checked))
+            chip.clicked.connect(lambda _=False, c=chip: self.guide_clicked(c))
             grid.addWidget(chip, index // 2, index % 2)
             self.guide_boxes[key] = chip
         layout.addLayout(grid)
         layout.addWidget(
             self.text(
-                "Combine guides. In alignment mode, drag the teal dots to place "
-                "vanishing points and the focal point.",
+                "Click a guide to use it alone; Shift+click adds more. In "
+                "alignment mode, drag the teal dots to place vanishing points "
+                "and the focal point.",
                 "muted",
             )
         )
@@ -806,6 +825,22 @@ class Controller(QWidget):
         self.sync_hotkey_edits()
         self.refresh_windows()
 
+    def guard_wheel(self):
+        """Let the mouse wheel scroll the panel instead of changing a control."""
+        for kind in (QAbstractSlider, QAbstractSpinBox, QComboBox):
+            for widget in self.content.findChildren(kind):
+                widget.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if (
+            event.type() == QEvent.Type.Wheel
+            and not event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
+            # Ctrl+wheel still adjusts the hovered control on purpose.
+            QApplication.sendEvent(self.scroll.verticalScrollBar(), event)
+            return True
+        return super().eventFilter(obj, event)
+
     def make_tray(self):
         self.tray = QSystemTrayIcon(self.icons[False], self)
         menu = QMenu(self)
@@ -872,16 +907,24 @@ class Controller(QWidget):
         # Hide label and field together so no orphan "Custom ratio" caption stays.
         self.frame_form.setRowVisible(self.custom_row, visible)
 
-    def guide_changed(self, key, checked):
+    def guide_clicked(self, chip):
+        """One guide at a time; Shift- or Ctrl-click adds or removes extras."""
         if self.syncing:
             return
-        guides = self.state["guides"]
-        if checked and key not in guides:
-            guides.append(key)
-        elif not checked and key in guides:
-            guides.remove(key)
+        key = chip.key
+        guides = list(self.state["guides"])
+        additive = chip.take_modifiers() & (
+            Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier
+        )
+        if additive:
+            guides = [g for g in guides if g != key] if key in guides else guides + [key]
+        else:
+            # Clicking the only active guide switches it off.
+            guides = [] if guides == [key] else [key]
+        self.state["guides"] = guides
         self.overlay.update()
         self.schedule_save()
+        self.sync_ui()
 
     def flip(self, key):
         self.change(key, not self.state[key])

@@ -1,6 +1,15 @@
-# OverLayer
+# OverLayer — Composition Overlay for D5 Render, Twinmotion & Creative Apps
 
 **A sticky, transparent composition overlay for rendering, photography and design.**
+
+[Download for Windows](https://github.com/hamzah1985/OverLayer/releases/latest) ·
+[Source code](https://github.com/hamzah1985/OverLayer) ·
+[Installation guide](#install--portable-windows-app)
+
+Looking for a **D5 Render overlay**, **D5 OverLayer**, **Twinmotion overlay**, or
+**Twinmotion composition guides**? OverLayer places rule-of-thirds grids,
+golden-ratio guides, golden spirals, leading lines and perspective guides over
+your viewport. It is free, open source, and works as an independent Windows app.
 
 Position a frame over your viewport, choose your guides, then lock it. Mouse
 clicks pass through to your app. When following an app window, closing the
@@ -13,8 +22,8 @@ There is nothing to install inside your creative application.
 
 ## Install — portable Windows app
 
-1. Download `OverLayer-1.0.0-windows-x64.zip` from the project's GitHub Releases
-   page, or use a ZIP supplied directly by the project maintainer.
+1. Download `OverLayer-1.0.0-windows-x64.zip` from
+   [GitHub Releases](https://github.com/hamzah1985/OverLayer/releases/latest).
 2. Right-click the ZIP → **Extract All**. Keep the complete extracted folder.
 3. Open **OverLayer.exe**. No Python installation or administrator access needed.
 
@@ -26,6 +35,11 @@ whether to run it. Do not run the executable directly inside the ZIP.
 borderless mode. Exclusive fullscreen is not supported.
 
 ## Your first composition
+
+For **D5 Render** or **Twinmotion**, open your project in a normal windowed or
+borderless window, select that app in **Align & follow**, and draw the overlay
+over its viewport. Lock the guides to keep working through them. No D5 plugin
+or Twinmotion plugin installation is needed; OverLayer runs separately.
 
 1. Open your creative application and arrange its panels as you like.
 2. In OverLayer's **Align & follow** section, select your app window and choose
@@ -89,7 +103,7 @@ borderless mode. Exclusive fullscreen is not supported.
 | --- | --- |
 | Rule of thirds | Classic thirds intersections |
 | Golden ratio | Grid at 0.382 / 0.618 |
-| Golden spiral | The classic whirling-squares diagram: nested squares with a quarter-circle arc in each. Exact on a golden-ratio frame; on other frames it still tiles the frame with true circles |
+| Golden spiral | The classic whirling-squares diagram: nested squares with a quarter-circle arc in each, built in a true golden rectangle and fitted to your frame. Every cut falls on the Golden ratio grid lines (0.618 / 0.382); the arcs are perfect circles on a 1.618:1 frame and slightly stretched on others |
 | Golden triangles | Main diagonal and perpendicular corner lines |
 | Diagonals | Both corner-to-corner diagonals |
 | Center & symmetry | Horizontal and vertical center axes |
@@ -100,12 +114,14 @@ borderless mode. Exclusive fullscreen is not supported.
 | Horizon / eye level | A movable eye-level line |
 | Custom grid | 2–16 rows and columns |
 
-Guides can be combined, mirrored in either direction, and rotated in 90° steps.
-Pick them from the tiles, each of which previews its own lines. You can adjust
+Pick a guide from the tiles, each of which previews its own lines. One guide is
+active at a time; hold **Shift** (or Ctrl) and click to combine several, and
+click the only active guide to switch it off. Guides can be mirrored in either
+direction and rotated in 90° steps. You can adjust
 line color (quick swatches or any color), opacity and thickness; add a focal-point
 marker and safe margins (1–25%, default 5%); and frame for viewport, 16:9, 3:2,
 4:3, square, 4:5, 9:16, 2.39:1 or any custom ratio. **Dim outside crop** darkens
-the area outside a crop frame. **Contrast halo** (on by default) draws a thin
+the area outside a crop frame. **Contrast halo** (off by default) draws a thin
 light or dark outline under each line so guides stay readable on any image. Crop
 frames are composition references; they do not change your app's camera or render
 output. Leading lines guide your eye; they do not detect scene geometry automatically.

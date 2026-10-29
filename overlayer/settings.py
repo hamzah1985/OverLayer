@@ -23,7 +23,7 @@ DEFAULTS = {
     "margin_pct": 5,
     "focal": False,
     "border": True,
-    "halo": True,
+    "halo": False,
     "dim_outside": False,
     "rows": 4,
     "columns": 4,

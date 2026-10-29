@@ -46,7 +46,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(result["reference_scale"], 10)
         self.assertEqual(result["reference_dx"], -100)
         self.assertEqual(result["custom_w"], 1)
-        self.assertTrue(result["halo"])  # invalid type -> default
+        self.assertFalse(result["halo"])  # invalid type -> default (off)
         old = validated({"guides": ["thirds"], "opacity": 50})
         self.assertEqual(old["reference_scale"], 100)
         self.assertFalse(old["dim_outside"])

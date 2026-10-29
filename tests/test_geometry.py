@@ -4,6 +4,7 @@ import unittest
 
 from overlayer.geometry import (
     GUIDES,
+    PHI,
     aspect_value,
     composed_paths,
     frame_rect,
@@ -65,7 +66,7 @@ class GeometryTests(unittest.TestCase):
 
     def test_golden_construction_matches_classic_diagram(self):
         w, h = 1618.0, 1000.0
-        lines, arcs = golden_construction(w, h)
+        lines, arcs = golden_construction(True)
         cuts = [
             tuple(round(v) for pt in line for v in (pt[0] * w, pt[1] * h))
             for line in lines[:4]
@@ -81,14 +82,20 @@ class GeometryTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len(arcs), 8)
 
-    def test_golden_arcs_are_continuous_true_circles(self):
-        for w, h in ((1618, 1000), (1920, 1080), (1080, 1920), (2390, 1000)):
-            lines, arcs = golden_construction(float(w), float(h))
+    def test_golden_arcs_are_continuous(self):
+        for landscape in (True, False):
+            lines, arcs = golden_construction(landscape)
             self.assertEqual(len(lines), len(arcs))
             for a, b in zip(arcs, arcs[1:]):
                 self.assertAlmostEqual(a[-1][0], b[0][0])
                 self.assertAlmostEqual(a[-1][1], b[0][1])
-            # Every arc is a quarter circle in pixel space (no stretching).
+
+    def test_golden_arcs_are_true_circles_on_a_golden_frame(self):
+        for w, h, landscape in (
+            (PHI * 1000, 1000.0, True),
+            (1000.0, PHI * 1000, False),
+        ):
+            lines, arcs = golden_construction(landscape)
             for arc, (c, e) in zip(arcs, lines):
                 cx, cy = c[0] * w, c[1] * h
                 radius = math.hypot(arc[0][0] * w - cx, arc[0][1] * h - cy)
@@ -97,9 +104,28 @@ class GeometryTests(unittest.TestCase):
                         math.hypot(x * w - cx, y * h - cy), radius, places=6
                     )
 
+    def test_golden_cuts_sit_on_the_golden_grid_for_any_frame(self):
+        grid = {1 - 1 / PHI, 1 / PHI}
+        for w, h in ((1510, 1015), (1920, 1080), (1000, 1000), (1080, 1920), (2390, 1000)):
+            paths = guide_paths("spiral", w, h, DEFAULTS)
+            first, second = paths[0], paths[1]  # the first two cut lines
+            landscape = w >= h
+            # First cut is a vertical line (landscape) or horizontal (portrait)
+            # at a golden fraction, the very line the "Golden ratio" grid draws.
+            axis = 0 if landscape else 1
+            self.assertAlmostEqual(first[0][axis], first[1][axis])
+            self.assertTrue(
+                any(abs(first[0][axis] - g) < 1e-9 for g in grid), (w, h)
+            )
+            other = 1 - axis
+            self.assertAlmostEqual(second[0][other], second[1][other])
+            self.assertTrue(
+                any(abs(second[0][other] - g) < 1e-9 for g in grid), (w, h)
+            )
+
     def test_golden_spiral_guide_includes_squares_and_arcs(self):
         paths = guide_paths("spiral", 1600, 900, DEFAULTS)
-        lines, arcs = golden_construction(1600.0, 900.0)
+        lines, arcs = golden_construction(True)
         self.assertEqual(len(paths), len(lines) + len(arcs))
 
     def test_aspect_value_and_ratio_label(self):

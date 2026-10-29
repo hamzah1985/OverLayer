@@ -520,17 +520,82 @@ class OverlayTests(unittest.TestCase):
 
         c = self.controller
         c.show()
+        from PySide6.QtCore import Qt
+        from PySide6.QtTest import QTest
+
         chip = c.guide_boxes["golden"]
+        self.assertEqual(c.state["guides"], ["thirds"])
+        chip.click()  # plain click replaces the current guide
+        self.assertEqual(c.state["guides"], ["golden"])
+        self.assertTrue(chip.isChecked())
+        self.assertFalse(c.guide_boxes["thirds"].isChecked())
+        chip.click()  # clicking the only active guide switches it off
+        self.assertEqual(c.state["guides"], [])
+        self.assertFalse(chip.isChecked())
         chip.click()
-        self.assertIn("golden", c.state["guides"])
-        chip.click()
-        self.assertNotIn("golden", c.state["guides"])
+        # Shift- or Ctrl-click combines guides.
+        QTest.mouseClick(
+            c.guide_boxes["spiral"], Qt.MouseButton.LeftButton, Qt.KeyboardModifier.ShiftModifier
+        )
+        QTest.mouseClick(
+            c.guide_boxes["diagonals"], Qt.MouseButton.LeftButton, Qt.KeyboardModifier.ControlModifier
+        )
+        self.assertEqual(c.state["guides"], ["golden", "spiral", "diagonals"])
+        QTest.mouseClick(
+            c.guide_boxes["spiral"], Qt.MouseButton.LeftButton, Qt.KeyboardModifier.ShiftModifier
+        )
+        self.assertEqual(c.state["guides"], ["golden", "diagonals"])
+        # A plain click collapses the combination back to one guide.
+        c.guide_boxes["horizon"].click()
+        self.assertEqual(c.state["guides"], ["horizon"])
         section = c.sections["refs"]
         self.assertFalse(section.is_expanded())
         section.header.click()
         self.assertTrue(section.body.isVisibleTo(c))
         c.save()
         self.assertTrue(Store(c.store.path).ui["sections"]["refs"])
+
+    def test_mouse_wheel_scrolls_panel_instead_of_changing_controls(self):
+        from PySide6.QtCore import QPoint, QPointF, Qt
+        from PySide6.QtGui import QWheelEvent
+        from PySide6.QtWidgets import QApplication
+
+        c = self.controller
+        c.resize(470, 420)
+        c.show()
+        self.app.processEvents()
+        bar = c.scroll.verticalScrollBar()
+        self.assertGreater(bar.maximum(), 0)
+
+        def wheel(widget, modifiers=Qt.KeyboardModifier.NoModifier):
+            QApplication.sendEvent(
+                widget,
+                QWheelEvent(
+                    QPointF(5, 5),
+                    QPointF(5, 5),
+                    QPoint(0, 0),
+                    QPoint(0, -120),
+                    Qt.MouseButton.NoButton,
+                    modifiers,
+                    Qt.ScrollPhase.NoScrollPhase,
+                    False,
+                ),
+            )
+
+        before = (c.opacity.value(), c.thickness.value(), c.aspect.currentText(), c.rows.value())
+        for control in (c.opacity, c.thickness, c.aspect, c.rows, c.presets):
+            bar.setValue(0)
+            wheel(control)
+            self.assertGreater(bar.value(), 0, type(control).__name__)
+        self.assertEqual(
+            before,
+            (c.opacity.value(), c.thickness.value(), c.aspect.currentText(), c.rows.value()),
+        )
+        # Ctrl+wheel deliberately adjusts the control itself.
+        bar.setValue(0)
+        wheel(c.opacity, Qt.KeyboardModifier.ControlModifier)
+        self.assertEqual(bar.value(), 0)
+        self.assertNotEqual(c.opacity.value(), before[0])
 
     def test_section_titles_keep_their_ampersand(self):
         # A lone "&" would be consumed as a keyboard-accelerator marker.

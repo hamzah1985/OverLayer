@@ -103,17 +103,21 @@ def anchors(state):
     return result
 
 
-@lru_cache(maxsize=32)
-def golden_construction(width, height):
-    """Whirling squares with a quarter-circle in each, filling the frame.
+@lru_cache(maxsize=2)
+def golden_construction(landscape=True):
+    """The classic golden-spiral diagram, fitted to the whole frame.
 
-    Repeatedly cuts the largest square from the corner where the previous arc
-    ended, so the arcs join smoothly and stay true circles in pixel space. On a
-    golden-ratio frame this is the classic golden spiral diagram; on any other
-    frame the same rule still tiles it exactly. Returns (cut lines, arcs) as
-    tuples of polylines in normalized coordinates, starting at the bottom-left.
+    Built in a true golden rectangle (phi : 1, or 1 : phi when portrait): it
+    repeatedly cuts the largest square from the corner where the previous arc
+    ended, so the arcs join smoothly. The result is returned as normalized
+    frame coordinates, so every cut falls on the golden fractions of the frame
+    (0.618 / 0.382 ...) - exactly on the "Golden ratio" grid lines - whatever
+    the frame's real shape. The arcs are true circles on a golden-ratio frame
+    and gently stretched quarter-ellipses on any other.
+    Returns (cut lines, arcs), starting at the bottom-left corner.
     """
-    left, top, right, bottom = 0.0, 0.0, float(width), float(height)
+    width, height = (PHI, 1.0) if landscape else (1.0, PHI)
+    left, top, right, bottom = 0.0, 0.0, width, height
     sx, sy = left, bottom
     lines, arcs = [], []
     min_side = 0.006 * max(width, height)
@@ -191,7 +195,7 @@ def guide_paths(kind, width, height, state):
         paths.append([(0.5, 0.12), (0.1, 0.88), (0.9, 0.88), (0.5, 0.12)])
     elif kind == "spiral":
         # Square subdivisions plus the quarter-circle spiral through them.
-        lines, arcs = golden_construction(float(width), float(height))
+        lines, arcs = golden_construction(width >= height)
         paths.extend(list(line) for line in lines)
         paths.extend(list(arc) for arc in arcs)
     elif kind in ("leading", "perspective", "horizon"):
