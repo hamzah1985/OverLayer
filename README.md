@@ -20,6 +20,16 @@ windowed creative software. D5 Render, Blender, SketchUp and other apps are
 examples of possible hosts; OverLayer works independently of their plugin APIs.
 There is nothing to install inside your creative application.
 
+## Screenshots
+
+**Golden spiral and composition controls in D5 Render**
+
+![OverLayer control panel and golden spiral composition overlay over a D5 Render viewport](docs/screenshots/d5-render-golden-spiral.jpg)
+
+| Leading lines in D5 Render | Golden triangles in D5 Render |
+| --- | --- |
+| ![OverLayer leading lines converging on a vanishing point in D5 Render](docs/screenshots/d5-render-leading-lines.jpg) | ![OverLayer golden triangle composition guides over a D5 Render viewport](docs/screenshots/d5-render-golden-triangles.jpg) |
+
 ## Install — portable Windows app
 
 1. Download `OverLayer-1.0.0-windows-x64.zip` from
