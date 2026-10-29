@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "overlayer"
+version = "1.0.0"
+description = "A sticky composition overlay for rendering, photography and design on Windows"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "Bogdan Demchenko"}]
+dependencies = ["PySide6-Essentials==6.10.0"]
+
+[project.gui-scripts]
+overlayer = "overlayer.app:main"
+
+[tool.setuptools.packages.find]
+include = ["overlayer*"]

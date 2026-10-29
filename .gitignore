@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+*.spec
+.pytest_cache/
+.ruff_cache/
+docs/control-panel.png
+docs/guide-gallery.png
